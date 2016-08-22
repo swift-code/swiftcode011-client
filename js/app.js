@@ -97,5 +97,71 @@ app.controller('loginCtrl', ['$scope', '$location', '$http', '$cookies', functio
 }]);
 
 app.controller('dashboardCtrl', ['$scope', '$location', '$http', '$cookies', function($scope, $location, $http, $cookies) {
+    $scope.getProfileData = function() {
+       var request = $http({
+           method: "GET",
+           url: URL + "profile/" + sessionStorage.userId
+       });
+       request.success(function(data) {
+           $scope.profileData = angular.fromJson(data);
+       });
+       request.error(function(data) {
+           console.log(data);
+       });
+   }
+   $scope.getProfileData();
+   $scope.updateProfile = function() {
+       delete this.profileData["connectionRequests"];
+       delete this.profileData["connections"];
+       delete this.profileData["suggestions"];
+       var request = $http({
+           method: "PUT",
+           url: URL + "profile/" + sessionStorage.userId,
+           crossDomain: true,
+           data: this.profileData
+       });
+       request.success(function(data) {
+           $scope.responseMessage = "Update successful.";
+           $("#dashboardMsgModal").modal('show');
+           $scope.getProfileData();
+       });
+       request.error(function(data) {
+           console.log(data);
+       });
+   }
+   $scope.sendConnectRequest = function(receiverId) {
+       var request = $http({
+           method: "POST",
+           crossDomain: true,
+           url: URL + "request/send/" + sessionStorage.userId + "/" + receiverId
+       });
+       request.success(function(data) {
+           $scope.responseMessage = "Your request has been sent.";
+           $("#dashboardMsgModal").modal('show');
+           $scope.getProfileData();
+       });
+       request.error(function(data) {
+           console.log(data);
+       });
+   }
+   $scope.acceptConnectRequest = function(receiverId) {
+       var request = $http({
+             method: "POST",
+             crossDomain: true,
+             url: URL + "request/accept/" + receiverId
+         });
+         request.success(function(data) {
+             $scope.responseMessage = "Request accepted. You now have a new connection.";
+             $("#dashboardMsgModal").modal('show');
+             $scope.getProfileData();
+         });
+         request.error(function(data) {
+             console.log(data);
+         });
+    }
+    $scope.logout=function(){
+      sessionStorage.clear();
+      $location.path("/login");
+    }
 
 }]);
